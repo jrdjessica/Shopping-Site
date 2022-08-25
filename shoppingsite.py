@@ -6,8 +6,9 @@ put melons in a shopping cart.
 Authors: Joel Burton, Christian Fernandez, Meggie Mahnken, Katie Byers.
 """
 
-from flask import Flask, render_template, redirect, flash
+from flask import Flask, render_template, redirect, flash, session
 import jinja2
+
 
 import melons
 
@@ -34,7 +35,7 @@ def index():
     return render_template("homepage.html")
 
 
-@app.route("/melons")
+@ app.route("/melons")
 def list_melons():
     """Return page showing all the melons ubermelon has to offer"""
 
@@ -43,7 +44,7 @@ def list_melons():
                            melon_list=melon_list)
 
 
-@app.route("/melon/<melon_id>")
+@ app.route("/melon/<melon_id>")
 def show_melon(melon_id):
     """Return page showing the details of a given melon.
 
@@ -56,7 +57,7 @@ def show_melon(melon_id):
                            display_melon=melon)
 
 
-@app.route("/cart")
+@ app.route("/cart")
 def show_shopping_cart():
     """Display content of shopping cart."""
 
@@ -78,10 +79,30 @@ def show_shopping_cart():
     # Make sure your function can also handle the case wherein no cart has
     # been added to the session
 
-    return render_template("cart.html")
+    order_total = 0
+
+    melon_objects = []
+
+    cart = session.get("cart", {})
+
+    # cart {melon_id: count}
+
+    for melon_id, count in cart.items():
+        melon = melons.get_by_id(melon_id)
+
+        melon_total = melon.price * count
+        order_total += melon_total
+
+        melon.quantity = count
+        melon.melon_total = melon_total
+
+        melon_objects.append(melon)
+
+    # return redirect("/cart")
+    return render_template("cart.html", cart_total=order_total, melon_list=melon_objects)
 
 
-@app.route("/add_to_cart/<melon_id>")
+@ app.route("/add_to_cart/<melon_id>")
 def add_to_cart(melon_id):
     """Add a melon to cart and redirect to shopping cart page.
 
@@ -100,17 +121,28 @@ def add_to_cart(melon_id):
     # - flash a success message
     # - redirect the user to the cart page
 
-    return "Oops! This needs to be implemented!"
+    cart = session.get("cart", {})
+
+    for melon_id in cart:
+        if melon_id not in cart:
+            cart[melon_id] = 0
+        else:
+            cart[melon_id] += 1
+
+    # cart[melon_id] = cart.get(melon_id, 0) + 1
+
+    flash("Cart is updated")
+    return redirect("/cart")
 
 
-@app.route("/login", methods=["GET"])
+@ app.route("/login", methods=["GET"])
 def show_login():
     """Show login form."""
 
     return render_template("login.html")
 
 
-@app.route("/login", methods=["POST"])
+@ app.route("/login", methods=["POST"])
 def process_login():
     """Log user into site.
 
@@ -135,13 +167,12 @@ def process_login():
     return "Oops! This needs to be implemented"
 
 
-@app.route("/checkout")
+@ app.route("/checkout")
 def checkout():
     """Checkout customer, process payment, and ship melons."""
 
     # For now, we'll just provide a warning. Completing this is beyond the
     # scope of this exercise.
-
     flash("Sorry! Checkout will be implemented in a future version.")
     return redirect("/melons")
 
