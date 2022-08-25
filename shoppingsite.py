@@ -98,6 +98,7 @@ def show_shopping_cart():
 
         melon_objects.append(melon)
 
+    # flash("Melon added to cart")
     # return redirect("/cart")
     return render_template("cart.html", cart_total=order_total, melon_list=melon_objects)
 
@@ -123,11 +124,10 @@ def add_to_cart(melon_id):
 
     cart = session.get("cart", {})
 
-    for melon_id in cart:
-        if melon_id not in cart:
-            cart[melon_id] = 0
-        else:
-            cart[melon_id] += 1
+    if melon_id not in cart:
+        cart[melon_id] = 1
+    else:
+        cart[melon_id] += 1
 
     # cart[melon_id] = cart.get(melon_id, 0) + 1
 
